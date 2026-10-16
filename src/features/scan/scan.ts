@@ -41,12 +41,13 @@ export function scanContent(
 
         findings.push({
           ruleId: rule.id,
+          category: "Segredo",
           title: rule.title,
           severity,
           file: path,
           line: i + 1,
           column: (match.index ?? 0) + 1,
-          masked: maskSecret(value),
+          evidence: maskSecret(value),
           explanation,
           fix: rule.fix,
         });

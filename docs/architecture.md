@@ -45,9 +45,12 @@ Não existem ainda `src/features/`, `src/components/` nem `drizzle/`; eles surge
 
 - Apresentação (`src/app`, `src/components`) chama módulos de funcionalidade; não importa `@/db`. A regra `quality/no-direct-data-access` aplica isso em `.tsx`.
 - Ambiente, logger e banco importam `server-only`; um import acidental em Client Component quebra o build.
-- Scanner de segredos em `src/features/scan/` (puro: `rules`, `mask`, `scan`, `report`; e `collect`, que é `server-only` por ler o disco). Demais motores (SAST, SCA, DAST, configuração) virão como módulos irmãos.
-- Fluxo local do scanner: `src/app/page.tsx` (client) chama a server action `src/app/actions.ts` (`"use server"`, valida o caminho com Zod) → `collectFiles` lê a pasta → `scanFiles` aplica as regras → `summarize` monta o relatório → `src/components/scan-report.tsx` renderiza. O navegador recebe só o relatório com segredos mascarados.
+- Dois motores de análise estática local, ambos produzindo o mesmo tipo `Finding` (campo `category`: "Segredo" | "Código" | "Configuração"; `evidence` é o valor mascarado para segredos e o trecho da linha para código/config):
+  - `src/features/scan/` — segredos (puro: `rules`, `mask`, `scan`, `report`; e `collect`, `server-only` por ler o disco).
+  - `src/features/audit/` — descuidos de código e configuração (XSS, eval, exec, SQL por interpolação, TLS desligado, CORS `*`, segredo em variável pública). Heurístico; marca para revisão.
+- Fluxo local: `src/app/page.tsx` (client) chama a server action `src/app/actions.ts` (`"use server"`, valida o caminho com Zod) → `collectFiles` lê a pasta → `scanFiles` + `auditFiles` → `summarize` → `src/components/scan-report.tsx` renderiza agrupado por categoria. O navegador recebe só o relatório, com segredos mascarados.
 - Logs nunca recebem conteúdo de arquivos, caminho ou segredos; a action registra apenas contagens.
+- Próximos motores (SCA de dependências; DAST não destrutivo contra o app local) virão como módulos irmãos. SCA precisa consultar nomes de pacotes numa base pública (decisão de privacidade pendente); DAST será limitado a checagens que não quebram nem derrubam o alvo.
 
 ## Dados e migrations
 

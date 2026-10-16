@@ -30,18 +30,25 @@ export interface SecretRule {
   validate?: (match: string) => boolean;
 }
 
-/** Um segredo encontrado em um arquivo. */
+/** Categoria do achado, usada para agrupar o relatório. */
+export type FindingCategory = "Segredo" | "Código" | "Configuração";
+
+/** Um problema encontrado em um arquivo (segredo, código ou configuração). */
 export interface Finding {
   ruleId: string;
+  category: FindingCategory;
   title: string;
   severity: Severity;
   file: string;
-  /** Linha 1-based onde o segredo aparece. */
+  /** Linha 1-based onde o problema aparece. */
   line: number;
   /** Coluna 1-based do início do trecho. */
   column: number;
-  /** Trecho mascarado; nunca contém o segredo inteiro. */
-  masked: string;
+  /**
+   * O que mostrar ao usuário como prova. Para segredos, é o valor MASCARADO
+   * (nunca o segredo inteiro). Para código/configuração, é o trecho da linha.
+   */
+  evidence: string;
   explanation: string;
   fix: string;
 }

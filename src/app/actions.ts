@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { collectFiles } from "@/features/scan/collect";
 import { scanFiles } from "@/features/scan";
+import { auditFiles } from "@/features/audit";
 import { summarize, type ScanReport } from "@/features/scan/report";
 import { logger } from "@/lib/logger";
 
@@ -24,10 +25,10 @@ export async function scanPath(rawPath: string): Promise<ScanActionResult> {
 
   try {
     const { files, truncated } = await collectFiles(parsed.data);
-    const findings = scanFiles(files);
+    const findings = [...scanFiles(files), ...auditFiles(files)];
     logger.info(
       { filesScanned: files.length, findings: findings.length, truncated },
-      "Varredura de segredos concluída",
+      "Análise concluída",
     );
     return { ok: true, report: summarize(findings), filesScanned: files.length, truncated };
   } catch {

@@ -22,8 +22,9 @@ export default function Home() {
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">VibeGuard</h1>
         <p className="text-zinc-600 dark:text-zinc-400">
-          Procura segredos (chaves de API, tokens, chaves privadas) no código do seu projeto.
-          Tudo roda na sua máquina: nenhum arquivo é enviado para fora.
+          Procura segredos esquecidos (chaves de API, tokens) e descuidos de código e
+          configuração que abrem brecha de segurança. Tudo roda na sua máquina: nenhum
+          arquivo é enviado para fora.
         </p>
       </header>
 
