@@ -1,0 +1,70 @@
+# Código e arquitetura
+
+## Stack efetiva
+
+| Peça | Versão | Observação |
+|---|---|---|
+| Next.js | 16.4.2 | App Router, Turbopack, `src/`, alias `@/*` |
+| React / React DOM | 19.3.0 | |
+| TypeScript | 5.9.3 | `strict: true` |
+| Tailwind CSS | 4.3.3 | via `@tailwindcss/turbopack` (gerado pelo create-next-app 16.4) |
+| Drizzle ORM / drizzle-kit | 0.45.4 / 0.31.11 | dialeto PostgreSQL |
+| pg | 8.23.1 | driver Node; exige runtime Node, não Edge |
+| Zod | 4.6.7 | ambiente e entradas |
+| Pino | 10.4.0 | logger de servidor com redação |
+| Vitest | 5.0.5 | ambiente `node` |
+| ESLint | 9.39.5 | `eslint-config-next` 16.4.2 e `eslint-plugin-drizzle` 0.2.3 |
+| Runtime | Node 24 | `engines.node >= 24`; `@types/node` 24 |
+| Gerenciador | pnpm 11.24.0 | `pnpm-lock.yaml`, `pnpm-workspace.yaml` |
+
+Versões exatas ficam no lockfile.
+
+## Mapa do código
+
+```text
+src/
+├── app/                 # App Router: layout (pt-BR), página inicial provisória, estilos globais
+├── db/
+│   ├── index.ts         # getDb(): pool pg lazy e limitado + Drizzle; closeDatabase()
+│   ├── index.test.ts    # ciclo de vida do pool, sem banco real (mock de pg)
+│   └── schema/index.ts  # schema vazio: nenhuma tabela criada ainda
+└── lib/
+    ├── env-schema.ts    # schemas Zod de ambiente; erros sem expor valores
+    ├── env.ts           # leitura de ambiente (server-only)
+    ├── logger.ts        # Pino com redação de segredos conhecidos (server-only)
+    ├── utils.ts         # cn() = clsx + tailwind-merge
+    └── *.test.ts        # validação sem vazamento e redação de logs
+eslint-rules/            # regras locais quality/* e baseline Next compartilhada
+scripts/verify-quality-rules.mjs  # self-check das regras locais
+drizzle.config.ts        # gera SQL em drizzle/ sem conexão
+```
+
+Não existem ainda `src/features/`, `src/components/` nem `drizzle/`; eles surgem com o primeiro fluxo e o primeiro schema.
+
+## Fronteiras e fluxo
+
+- Apresentação (`src/app`, `src/components`) chama módulos de funcionalidade; não importa `@/db`. A regra `quality/no-direct-data-access` aplica isso em `.tsx`.
+- Ambiente, logger e banco importam `server-only`; um import acidental em Client Component quebra o build.
+- Motores de análise (planejados: segredos, SAST, SCA, DAST, configuração) serão módulos de servidor em `src/features/scan/`, com entrada validada por Zod e saída em DTO de achado. Ainda não implementados.
+- Logs nunca recebem conteúdo de arquivos analisados nem segredos encontrados; a redação do Pino cobre só nomes de campo conhecidos.
+
+## Dados e migrations
+
+- Schema em `src/db/schema/`, sem tabelas. Entidades (análise, achado, alvo verificado) entram com o fluxo que as usa; tipos via `$inferSelect`/`$inferInsert`.
+- `pnpm db:generate` gera SQL em `drizzle/` sem conectar. Revise o SQL e aplique com `pnpm db:migrate` só em destino autorizado; `DATABASE_URL_UNPOOLED` tem prioridade quando o provedor exigir conexão direta.
+- Pool: `max: 5`, timeout de conexão 5 s, ociosidade 30 s, criado na primeira chamada de `getDb()` e reaproveitado no HMR. Dimensionar conforme o host quando ele for escolhido.
+- Nada conecta ou migra em build, import ou request.
+
+## Decisões
+
+| Decisão | Motivo | Alternativa | Fonte/data | Revisar quando |
+|---|---|---|---|---|
+| Drizzle + PostgreSQL | Default do toolkit; o produto guarda análises e relatórios | Sem banco (descartado: relatórios precisam persistir) | docs/06-project-defaults.md, 2026-10-16 | Escolha de hospedagem |
+| Tailwind via `@tailwindcss/turbopack` | Gerado pelo create-next-app 16.4.2 estável | PostCSS clássico | `create-next-app@16.4.2`, 2026-10-16 | Atualização do Next |
+| Sem React Compiler / Cache Components | Nenhum requisito exige; flags negativas evitam preferências salvas | Ativar | create-next-app --help, 2026-10-16 | Requisito de desempenho medido |
+| `esbuild: false` em `allowBuilds` | Os binários Windows vêm dos pacotes opcionais `@esbuild/win32-x64`; postinstall desnecessário | Permitir build script | pnpm 11 install, 2026-10-16 | Falha de drizzle-kit/vitest por binário ausente |
+| Assets de template removidos de `public/` | Não usados pela página provisória | Manter | — | — |
+
+## Manutenção
+
+Atualize este mapa ao alterar diretórios, dependências relevantes, contratos ou fronteiras. Registre comportamento comprovado; remova decisões que deixaram de valer.

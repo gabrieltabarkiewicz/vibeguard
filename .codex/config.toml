@@ -1,0 +1,4 @@
+# Context7 for Codex in this project. Project config requires trust in Codex.
+# Authentication, model preferences and machine permissions stay outside this file.
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
