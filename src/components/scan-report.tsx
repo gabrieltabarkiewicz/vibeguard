@@ -50,7 +50,7 @@ function FindingCard({ finding }: { finding: Finding }) {
         <h3 className="font-semibold">{finding.title}</h3>
       </div>
       <p className="mt-1 font-mono text-sm break-all text-zinc-500">
-        {finding.file}:{finding.line}:{finding.column} · <span>{finding.evidence}</span>
+        {finding.file}{finding.line > 0 ? `:${finding.line}:${finding.column}` : ""} · <span>{finding.evidence}</span>
       </p>
       <p className="mt-2 text-sm">{finding.explanation}</p>
       <div className="mt-3 flex items-start justify-between gap-3">
@@ -61,24 +61,23 @@ function FindingCard({ finding }: { finding: Finding }) {
   );
 }
 
-export function ScanReportView({ report, filesScanned, truncated }: {
+export function ScanReportView({ report, summaryNote, emptyNote }: {
   report: ScanReport;
-  filesScanned: number;
-  truncated: boolean;
+  /** Contexto curto ao lado da contagem (ex.: "em 12 arquivo(s)"). */
+  summaryNote: string;
+  /** Mensagem quando nada foi encontrado. */
+  emptyNote: string;
 }) {
   if (report.total === 0) {
     return (
       <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
         <p className="font-medium">Nenhum problema encontrado.</p>
-        <p className="mt-1 text-sm">
-          Analisei {filesScanned} arquivo(s){truncated ? " (parei no limite de arquivos)" : ""}. Isto cobre
-          segredos de formato conhecido e descuidos comuns de código; não é prova de que o app inteiro está seguro.
-        </p>
+        <p className="mt-1 text-sm">{emptyNote}</p>
       </div>
     );
   }
 
-  const CATEGORY_ORDER = ["Segredo", "Código", "Configuração"] as const;
+  const CATEGORY_ORDER = ["Segredo", "Código", "Configuração", "Aplicativo"] as const;
   const groups = CATEGORY_ORDER.map((category) => ({
     category,
     items: report.findings.filter((f) => f.category === category),
@@ -88,7 +87,7 @@ export function ScanReportView({ report, filesScanned, truncated }: {
     <div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <strong>{report.total} achado(s)</strong>
-        <span className="text-zinc-500">em {filesScanned} arquivo(s){truncated ? ", análise truncada" : ""}</span>
+        <span className="text-zinc-500">{summaryNote}</span>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
         {SEVERITY_ORDER.filter((s) => report.countsBySeverity[s] > 0).map((s) => (

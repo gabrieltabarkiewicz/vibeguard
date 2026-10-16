@@ -18,7 +18,7 @@ O VibeGuard testa o software, emite um diagnóstico em linguagem simples e entre
 1. **Apontar a pasta:** o usuário roda o VibeGuard na própria máquina e informa o caminho da pasta do projeto a analisar.
 2. **Analisar:** os motores aplicáveis rodam localmente sobre os arquivos e produzem achados. O código nunca sai da máquina do usuário.
 3. **Ler relatório:** cada achado mostra falha, severidade, evidência, explicação em linguagem simples e correção (diff ou prompt).
-4. **Verificar propriedade (testes dinâmicos):** antes de qualquer teste contra um app em execução, o usuário prova que controla o alvo (ou aponta para o próprio app em localhost). Sem essa prova, o teste dinâmico não roda.
+4. **Testar o app ligado (teste dinâmico):** com o app rodando, o usuário informa o endereço **local** (localhost) e o VibeGuard faz checagens fortes, porém não destrutivas. A propriedade é garantida pela restrição a alvos locais: a ferramenta recusa qualquer endereço que não seja da própria máquina. Não há brute force, negação de serviço nem exploração que altere dados.
 
 ## MVP
 
