@@ -31,7 +31,7 @@ export interface SecretRule {
 }
 
 /** Categoria do achado, usada para agrupar o relatório. */
-export type FindingCategory = "Segredo" | "Código" | "Configuração";
+export type FindingCategory = "Segredo" | "Código" | "Configuração" | "Aplicativo";
 
 /** Um problema encontrado em um arquivo (segredo, código ou configuração). */
 export interface Finding {

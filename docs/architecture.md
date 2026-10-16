@@ -50,7 +50,9 @@ Não existem ainda `src/features/`, `src/components/` nem `drizzle/`; eles surge
   - `src/features/audit/` — descuidos de código e configuração (XSS, eval, exec, SQL por interpolação, TLS desligado, CORS `*`, segredo em variável pública). Heurístico; marca para revisão.
 - Fluxo local: `src/app/page.tsx` (client) chama a server action `src/app/actions.ts` (`"use server"`, valida o caminho com Zod) → `collectFiles` lê a pasta → `scanFiles` + `auditFiles` → `summarize` → `src/components/scan-report.tsx` renderiza agrupado por categoria. O navegador recebe só o relatório, com segredos mascarados.
 - Logs nunca recebem conteúdo de arquivos, caminho ou segredos; a action registra apenas contagens.
-- Próximos motores (SCA de dependências; DAST não destrutivo contra o app local) virão como módulos irmãos. SCA precisa consultar nomes de pacotes numa base pública (decisão de privacidade pendente); DAST será limitado a checagens que não quebram nem derrubam o alvo.
+- `src/features/probe/` — teste do app rodando (DAST não destrutivo). Camada de rede `http.ts` (`server-only`): só aceita alvo local (`localhost`/`127.0.0.1`/`::1`/`*.localhost`/`*.test`), só GET, número pequeno e fixo de requisições com timeout — sem flood, brute force ou payload destrutivo. `checks.ts` (puro) transforma a observação em achados (categoria "Aplicativo"): cabeçalhos de segurança ausentes, CORS reflexivo/`*`, reflexão de entrada (XSS), rota sensível sem login, arquivo sensível exposto (`.env`, `.git`), vazamento de stack trace, cabeçalhos que vazam o servidor. A action `probeApp` valida o endereço e loga só a contagem.
+- Limite de produto e segurança: o DAST testa **forte, mas não destrutivo** e **só o alvo local**. Não há (e não deve haver) brute force, negação de serviço ou exploração que altere dados — isso mantém a ferramenta segura mesmo distribuída.
+- Próximo motor pendente: SCA de dependências, que precisa consultar nomes de pacotes numa base pública (o usuário optou por não usar internet por ora).
 
 ## Dados e migrations
 
