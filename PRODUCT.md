@@ -77,7 +77,9 @@ Setup técnico: ver `docs/setup.md`.
 
 ## Próxima entrega
 
-Scanner de segredos como módulo de servidor puro (`src/features/scan/`) com regras para os formatos mais comuns (OpenAI, Anthropic, Stripe, AWS, Supabase `service_role`, chaves privadas PEM), mascaramento e testes Vitest com fixtures positivas e negativas. A interface e a persistência vêm depois.
+O scanner de segredos foi implementado em `src/features/scan/` (regras para OpenAI, Anthropic, Stripe live/test, AWS, Google, GitHub, Supabase `service_role` via JWT e chaves PEM; mascaramento; elevação de severidade quando o segredo está em variável pública; testes com fixtures positivas e negativas). É um módulo puro, ainda sem interface nem persistência.
+
+Próximo passo: um ponto de entrada para enviar código ao scanner (depende da decisão de ponto de entrada em "Hipóteses e pendências") e a tela de relatório que mostra cada achado com severidade, trecho mascarado, explicação e correção.
 
 ## Manutenção
 
