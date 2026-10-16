@@ -19,6 +19,8 @@ enviado para fora.** Você aponta a pasta (ou o app rodando); ele faz o resto.
   &nbsp; · &nbsp;
   <a href="docs/guia-visual.html">GUIA VISUAL</a>
   &nbsp; · &nbsp;
+  <a href="#rodar-como-comando-um-prompt-no-seu-agente-de-ia">COMANDO</a>
+  &nbsp; · &nbsp;
   <a href="#uso-responsável">USO RESPONSÁVEL</a>
 </p>
 
@@ -96,6 +98,23 @@ Na tela, há duas seções:
 
 Um guia visual para quem não é técnico está em
 [`docs/guia-visual.html`](docs/guia-visual.html).
+
+---
+
+## Rodar como comando (um prompt no seu agente de IA)
+
+Sem instalar nada: cole esta linha no seu agente de IA (Claude Code, Codex,
+Cursor…), com o projeto aberto, e ele faz a revisão de segurança do diretório —
+segredos e descuidos de código — direto no chat.
+
+```text
+Leia https://raw.githubusercontent.com/gabrieltabarkiewicz/vibeguard/main/docs/prompts/revisao-seguranca.md e faça a revisão de segurança deste diretório.
+```
+
+O prompt completo e os limites estão em
+[`docs/prompts/revisao-seguranca.md`](docs/prompts/revisao-seguranca.md). Essa via é
+**estática** (lê os arquivos); para o **teste do app em execução**, use o aplicativo
+acima.
 
 ---
 
