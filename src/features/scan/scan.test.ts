@@ -36,8 +36,8 @@ describe("fixtures positivas", () => {
       expect(match, `esperava um achado para ${ruleId}`).toBeDefined();
       expect(match?.line).toBe(1);
       // O relatório nunca contém o segredo inteiro.
-      expect(match?.masked).not.toBe(secret);
-      expect(`${match?.masked}`.length).toBeLessThan(secret.length);
+      expect(match?.evidence).not.toBe(secret);
+      expect(`${match?.evidence}`.length).toBeLessThan(secret.length);
       expect(match?.fix.length ?? 0).toBeGreaterThan(0);
     });
   }

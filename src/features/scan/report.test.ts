@@ -4,8 +4,8 @@ import type { Finding, Severity } from "./types";
 
 function finding(severity: Severity): Finding {
   return {
-    ruleId: "r", title: "t", severity, file: "f.ts", line: 1, column: 1,
-    masked: "a…b", explanation: "e", fix: "x",
+    ruleId: "r", category: "Segredo", title: "t", severity, file: "f.ts", line: 1, column: 1,
+    evidence: "a…b", explanation: "e", fix: "x",
   };
 }
 
