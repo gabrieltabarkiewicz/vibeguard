@@ -15,16 +15,16 @@ O VibeGuard testa o software, emite um diagnóstico em linguagem simples e entre
 
 ## Fluxos da versão inicial
 
-1. **Enviar alvo:** o usuário informa o que será analisado e recebe a confirmação de que a análise começou.
-2. **Analisar:** os motores aplicáveis rodam sobre o alvo e produzem achados.
+1. **Apontar a pasta:** o usuário roda o VibeGuard na própria máquina e informa o caminho da pasta do projeto a analisar.
+2. **Analisar:** os motores aplicáveis rodam localmente sobre os arquivos e produzem achados. O código nunca sai da máquina do usuário.
 3. **Ler relatório:** cada achado mostra falha, severidade, evidência, explicação em linguagem simples e correção (diff ou prompt).
-4. **Verificar propriedade (testes dinâmicos):** antes de qualquer teste contra um app em execução, o usuário prova que controla o alvo (registro DNS, arquivo no domínio ou repositório conectado). Sem essa prova, o teste dinâmico não roda.
+4. **Verificar propriedade (testes dinâmicos):** antes de qualquer teste contra um app em execução, o usuário prova que controla o alvo (ou aponta para o próprio app em localhost). Sem essa prova, o teste dinâmico não roda.
 
 ## MVP
 
 Em ordem de prioridade (hipótese, ver pendências):
 
-1. Scanner de segredos sobre o código enviado: chaves de API, `service_role` do Supabase, `.env` versionado.
+1. Scanner de segredos sobre o código local: chaves de API, `service_role` do Supabase, `.env` versionado.
 2. Relatório com diagnóstico e correção para cada achado do scanner.
 3. Análise de dependências (SCA): pacotes com CVE conhecido e pacotes inexistentes ou suspeitos.
 4. Auditoria de configuração Supabase/Firebase (RLS desativado, regras abertas).
@@ -32,8 +32,9 @@ Em ordem de prioridade (hipótese, ver pendências):
 
 ## Fora de escopo
 
-- Pagamentos, planos e cobrança.
-- Equipes, multi-tenancy e papéis administrativos.
+- Venda, planos, cobrança e hospedagem como serviço: a primeira versão é uma ferramenta local, aberta para a galera rodar na própria máquina.
+- Conta de usuário, equipes, multi-tenancy e papéis administrativos.
+- Enviar o código do usuário para qualquer servidor nosso.
 - Correção automática com commit ou push no repositório do usuário (a correção é sugerida, não aplicada).
 - Testes contra alvos sem verificação de propriedade.
 - Testes de negação de serviço ou carga.
@@ -48,21 +49,22 @@ Em ordem de prioridade (hipótese, ver pendências):
 
 ## Restrições e decisões técnicas
 
+- **Local-first:** o VibeGuard roda na máquina do usuário. Ele executa `pnpm dev`, abre o localhost e aponta a pasta do projeto; o servidor Next (na própria máquina) lê os arquivos e mostra o relatório. Não há servidor hospedado nem envio de código para fora.
 - Next.js 16.4.2 (App Router), React 19.3, TypeScript strict, Tailwind 4, ESLint 9, pnpm 11.24 e Node 24.
-- Persistência: Drizzle ORM + PostgreSQL (`pg`). O produto precisa guardar análises e relatórios; nenhuma tabela foi criada ainda.
-- Autenticação, armazenamento de arquivos, fila de jobs e integração com GitHub entram quando o fluxo correspondente for implementado, por necessidade concreta.
-- Os motores de análise rodam no servidor (Node), nunca no cliente.
+- Persistência: Drizzle ORM + PostgreSQL (`pg`) fica instalado para um histórico opcional no futuro, mas **o MVP local não usa banco** — o relatório é gerado em memória e mostrado na hora. Nenhuma tabela foi criada.
+- Leitura da pasta e os motores de análise rodam no servidor (Node), nunca no cliente; o navegador só recebe o relatório (com segredos mascarados).
+- Integração com GitHub, empacotamento (ex.: `npx`) e qualquer modo hospedado entram depois, por necessidade concreta.
 
 ## Hipóteses e pendências
 
 | Item | Tipo | Impacto | Próximo passo |
 |---|---|---|---|
 | Nome "VibeGuard" | Hipótese reversível | Marca, domínio e textos | Usuário define o nome |
-| Ponto de entrada: repositório, upload de código, URL ou combinação | **Pendente** | Define a ordem dos motores e as integrações (GitHub OAuth, upload, DAST) | Usuário decide; o MVP acima supõe código enviado primeiro |
-| Autenticação dos usuários | Pendente | Necessária para guardar relatórios por usuário | Escolher provedor quando o fluxo de relatório for persistido |
+| Ponto de entrada | **Decidido (2026-10-16)** | App local no navegador: o usuário aponta uma pasta do projeto e o servidor Next local a varre. Upload e GitHub ficam para depois | — |
+| Autenticação dos usuários | Dispensada no MVP | Ferramenta local, sem conta | Revisar só se/quando houver modo hospedado |
 | Execução das análises (síncrona ou em fila/worker) | Hipótese: síncrona no MVP | Análises longas (DAST) exigem fila | Revisar ao implementar o DAST |
-| Retenção do código enviado | Hipótese: descartar após a análise | Privacidade e custo | Confirmar com o usuário |
-| Hospedagem | Pendente | Pooling do banco, limites de tempo das funções | Decidir antes do primeiro deploy |
+| Distribuição (como a galera instala) | Pendente | Hoje é clonar + `pnpm dev`; um `npx`/binário seria mais fácil | Decidir após o primeiro fluxo funcionar |
+| Limite de tamanho da pasta/arquivo | Hipótese: pular arquivos grandes e binários, teto de arquivos | Varredura pode ficar lenta em repos enormes | Ajustar com uso real |
 
 ## Critérios de aceitação
 
@@ -77,7 +79,9 @@ Setup técnico: ver `docs/setup.md`.
 
 ## Próxima entrega
 
-Scanner de segredos como módulo de servidor puro (`src/features/scan/`) com regras para os formatos mais comuns (OpenAI, Anthropic, Stripe, AWS, Supabase `service_role`, chaves privadas PEM), mascaramento e testes Vitest com fixtures positivas e negativas. A interface e a persistência vêm depois.
+O scanner de segredos foi implementado em `src/features/scan/` (regras para OpenAI, Anthropic, Stripe live/test, AWS, Google, GitHub, Supabase `service_role` via JWT e chaves PEM; mascaramento; elevação de severidade quando o segredo está em variável pública; testes com fixtures positivas e negativas). É um módulo puro, ainda sem interface nem persistência.
+
+Próximo passo (em andamento): o app local no navegador. O usuário aponta a pasta do projeto, o servidor Next varre os arquivos (ignorando `node_modules`, pastas de build e arquivos binários/grandes) e a tela mostra cada achado por severidade, com trecho mascarado, explicação e correção copiável.
 
 ## Manutenção
 

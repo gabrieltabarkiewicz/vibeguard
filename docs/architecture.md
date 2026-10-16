@@ -45,8 +45,9 @@ Não existem ainda `src/features/`, `src/components/` nem `drizzle/`; eles surge
 
 - Apresentação (`src/app`, `src/components`) chama módulos de funcionalidade; não importa `@/db`. A regra `quality/no-direct-data-access` aplica isso em `.tsx`.
 - Ambiente, logger e banco importam `server-only`; um import acidental em Client Component quebra o build.
-- Motores de análise (planejados: segredos, SAST, SCA, DAST, configuração) serão módulos de servidor em `src/features/scan/`, com entrada validada por Zod e saída em DTO de achado. Ainda não implementados.
-- Logs nunca recebem conteúdo de arquivos analisados nem segredos encontrados; a redação do Pino cobre só nomes de campo conhecidos.
+- Scanner de segredos em `src/features/scan/` (puro: `rules`, `mask`, `scan`, `report`; e `collect`, que é `server-only` por ler o disco). Demais motores (SAST, SCA, DAST, configuração) virão como módulos irmãos.
+- Fluxo local do scanner: `src/app/page.tsx` (client) chama a server action `src/app/actions.ts` (`"use server"`, valida o caminho com Zod) → `collectFiles` lê a pasta → `scanFiles` aplica as regras → `summarize` monta o relatório → `src/components/scan-report.tsx` renderiza. O navegador recebe só o relatório com segredos mascarados.
+- Logs nunca recebem conteúdo de arquivos, caminho ou segredos; a action registra apenas contagens.
 
 ## Dados e migrations
 
