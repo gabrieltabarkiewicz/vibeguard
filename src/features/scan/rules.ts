@@ -39,8 +39,9 @@ export const RULES: SecretRule[] = [
     id: "openai-api-key",
     title: "Chave de API da OpenAI",
     severity: "critica",
-    // (?!ant-) evita casar com uma chave da Anthropic (sk-ant-…), que tem regra própria.
-    pattern: /sk-(?!ant-)(?:proj-)?[A-Za-z0-9_-]{20,}/g,
+    // (?<![\w-]) exige que o token comece num limite (evita casar dentro de um blob
+    // base64url). (?!ant-) evita casar com a chave da Anthropic, que tem regra própria.
+    pattern: /(?<![\w-])sk-(?!ant-)(?:proj-)?[A-Za-z0-9_-]{20,}/g,
     explanation:
       "Uma chave da OpenAI dá acesso pago à sua conta. Exposta, ela pode ser " +
       "usada por terceiros e gerar cobrança na sua fatura.",
@@ -50,7 +51,7 @@ export const RULES: SecretRule[] = [
     id: "anthropic-api-key",
     title: "Chave de API da Anthropic (Claude)",
     severity: "critica",
-    pattern: /sk-ant-[A-Za-z0-9_-]{20,}/g,
+    pattern: /(?<![\w-])sk-ant-[A-Za-z0-9_-]{20,}/g,
     explanation:
       "Uma chave da Anthropic dá acesso pago à sua conta. Exposta, pode ser " +
       "usada por terceiros e gerar cobrança.",
@@ -60,7 +61,7 @@ export const RULES: SecretRule[] = [
     id: "stripe-secret-key-live",
     title: "Chave secreta de produção da Stripe",
     severity: "critica",
-    pattern: /[sr]k_live_[A-Za-z0-9]{16,}/g,
+    pattern: /(?<![\w-])[sr]k_live_[A-Za-z0-9]{16,}/g,
     explanation:
       "A chave secreta de produção da Stripe permite movimentar dinheiro e ler " +
       "dados de clientes reais. É o segredo mais perigoso de vazar.",
@@ -72,7 +73,7 @@ export const RULES: SecretRule[] = [
     id: "stripe-secret-key-test",
     title: "Chave secreta de teste da Stripe",
     severity: "media",
-    pattern: /[sr]k_test_[A-Za-z0-9]{16,}/g,
+    pattern: /(?<![\w-])[sr]k_test_[A-Za-z0-9]{16,}/g,
     explanation:
       "Chave de ambiente de teste da Stripe. Não movimenta dinheiro real, mas " +
       "não deve ficar no código versionado.",

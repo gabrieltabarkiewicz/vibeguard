@@ -8,6 +8,8 @@ function b64url(obj: unknown): string {
 }
 const serviceRoleJwt = `${b64url({ alg: "HS256", typ: "JWT" })}.${b64url({ role: "service_role", iss: "supabase" })}.c2lnbmF0dXJl`;
 const anonJwt = `${b64url({ alg: "HS256", typ: "JWT" })}.${b64url({ role: "anon", iss: "supabase" })}.c2lnbmF0dXJl`;
+// JWT válido na forma, mas sem o campo role: exercita o validate rejeitando.
+const roleLessJwt = `${b64url({ alg: "HS256", typ: "JWT" })}.${b64url({ iss: "supabase", sub: "u1" })}.c2lnbmF0dXJl`;
 
 // Valores sintéticos no formato real de cada segredo.
 const POSITIVES: Record<string, string> = {
@@ -52,6 +54,20 @@ describe("fixtures positivas", () => {
     const match = findById(scanContent("x.ts", content), "github-token");
     expect(match?.line).toBe(3);
   });
+
+  it("reporta linha e coluna corretas com quebras CRLF", () => {
+    const content = `linha 1\r\nconst k = "${POSITIVES["aws-access-key-id"]}";`;
+    const match = findById(scanContent("x.ts", content), "aws-access-key-id");
+    expect(match?.line).toBe(2);
+    // coluna 1-based do início do trecho (após `const k = "`).
+    expect(match?.column).toBe('const k = "'.length + 1);
+  });
+
+  it("detecta vários segredos distintos na mesma linha", () => {
+    const line = `${POSITIVES["openai-api-key"]} e ${POSITIVES["github-token"]}`;
+    const ids = scanContent("x.ts", line).map((f) => f.ruleId).sort();
+    expect(ids).toEqual(["github-token", "openai-api-key"]);
+  });
 });
 
 describe("fixtures negativas", () => {
@@ -61,6 +77,8 @@ describe("fixtures negativas", () => {
     "const prefix = 'sk-short';", // curto demais para a OpenAI
     "const msg = 'use a chave service_role apenas no servidor';", // só texto
     `const anon = "${anonJwt}";`, // JWT anônimo do Supabase: público por design
+    "const hash = 'abcsk-proj0123456789abcdefghij';", // 'sk-' embutido em blob: não é token
+    `const semRole = "${roleLessJwt}";`, // JWT válido sem role: validate rejeita
   ];
 
   for (const line of SAFE) {
