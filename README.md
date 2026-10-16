@@ -1,34 +1,76 @@
-# VibeGuard
+# 🛡️ VibeGuard
 
-Testes de segurança para quem cria software com IA. O VibeGuard encontra as falhas mais comuns em apps feitos com vibe coding (chaves expostas, banco sem RLS, autorização só no front, dependências vulneráveis), explica o risco em linguagem simples e entrega a correção pronta. Escopo e público em [PRODUCT.md](PRODUCT.md).
+**Testes de segurança para quem cria software com IA.** O VibeGuard roda na sua
+máquina, procura brechas no seu projeto e explica cada uma em linguagem simples,
+já com a correção pronta. Nenhum arquivo seu é enviado para fora.
 
-## Executar
+---
 
-Requer Node 24 e pnpm 11 (versão fixada em `packageManager`).
+## ⚠️ Antes de tudo: uso responsável
+
+O VibeGuard só pode ser usado para testar **software que é seu** (ou que você tem
+permissão explícita para testar). O teste do app rodando só funciona em endereços
+da **sua própria máquina** (`localhost`) — a ferramenta recusa qualquer outro
+endereço de propósito. Testar o sistema dos outros sem autorização é crime.
+
+---
+
+## O que ele faz
+
+O VibeGuard tem três "detetives":
+
+| Detetive | O que procura |
+|---|---|
+| 🔑 **Segredos** | Chaves de API, tokens e chaves privadas esquecidas no código |
+| 📖 **Código** | Descuidos que abrem brecha (XSS, eval, SQL mal montado, CORS liberado, segredo em variável pública…) |
+| 🚨 **App ligado** | Testa o seu app rodando: travas de segurança faltando, arquivo sensível exposto, área sem senha, entrada refletida (XSS)… |
+
+Cada achado vem com: **o que é**, **o quão grave é**, **onde está**, uma
+**explicação simples** e a **correção pronta pra copiar** (inclusive um texto pra
+colar na sua ferramenta de IA).
+
+> O VibeGuard aponta o caminho, mas não substitui um olhar humano: uma brecha nova
+> sempre pode escapar. Use como um bom primeiro pente-fino, não como garantia.
+
+---
+
+## Como usar (jeito fácil)
+
+**Antes:** instale o [Node.js](https://nodejs.org) (versão 20 ou mais nova). É o
+único pré-requisito.
+
+Depois, dentro da pasta do VibeGuard:
+
+- **No Windows:** dê dois cliques em **`iniciar.bat`**.
+- **No Mac ou Linux:** rode `./iniciar.sh` no terminal.
+
+O script instala o que falta e abre o VibeGuard. Quando aparecer o endereço
+`http://localhost:3000`, abra-o no navegador.
+
+Na tela, você pode:
+
+1. **Analisar o código** — informe o caminho da pasta do seu projeto.
+2. **Testar o app ligado** — deixe o seu app rodando e informe o endereço local
+   (ex.: `localhost:3000`).
+
+## Como usar (manual)
+
+Se preferir os comandos:
 
 ```bash
-pnpm install
-pnpm dev
+pnpm install   # instala as dependências (use "corepack enable" se faltar o pnpm)
+pnpm dev       # inicia em http://localhost:3000
 ```
 
-A aplicação abre em http://localhost:3000. A base atual roda sem banco; `DATABASE_URL` só é necessária quando o primeiro fluxo com persistência existir (ver [onboarding](docs/onboarding.md)).
+---
 
-Verificação completa (lint, tipos, regras locais, testes e build, sem credenciais):
+## Para quem for desenvolver
 
-```bash
-pnpm check
-```
+- Verificação completa (lint, tipos, testes e build): `pnpm check`
+- Documentação do projeto em [`docs/`](docs/) e no [`PRODUCT.md`](PRODUCT.md).
+- Guia visual para leigos: [`docs/guia-visual.html`](docs/guia-visual.html).
 
-## Documentação
+## Licença
 
-- [Produto e escopo](PRODUCT.md).
-- [Preparação local](docs/onboarding.md).
-- [Estrutura e decisões técnicas](docs/architecture.md).
-- [Design e acessibilidade](docs/design.md).
-- [Checks de qualidade](docs/quality.md).
-- [Instruções para agentes](AGENTS.md).
-- [Setup e evidências](docs/setup.md).
-
-## Próxima entrega
-
-Scanner de segredos como módulo de servidor com testes: dado um conjunto de arquivos, retorna achados com arquivo, linha, severidade, segredo mascarado, explicação e correção. Critério: as fixtures positivas geram achados e as negativas não geram nenhum. Pendente: o usuário decidir o ponto de entrada (repositório, upload ou URL), que define a interface seguinte.
+[MIT](LICENSE) — livre para usar, estudar e compartilhar. Sem garantias; use por
+sua conta e risco, e apenas em sistemas que você tem permissão para testar.

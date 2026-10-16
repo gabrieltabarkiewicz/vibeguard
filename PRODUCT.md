@@ -1,6 +1,6 @@
 # VibeGuard
 
-> "VibeGuard" é um nome de trabalho (hipótese reversível). Troque aqui, em `package.json` e no `layout.tsx` quando o nome for definido.
+> Nome do produto: **VibeGuard** (definido). Usado em `package.json`, `layout.tsx` e nos documentos.
 
 ## Problema e objetivo
 

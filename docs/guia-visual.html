@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VibeGuard — Guia Visual</title>
+<style>
+  :root {
+    --bg: #fafafa; --card: #ffffff; --ink: #18181b; --muted: #52525b;
+    --line: #e4e4e7; --brand: #0f766e; --brand-soft: #ccfbf1;
+    --crit: #dc2626; --alta: #ea580c; --media: #ca8a04; --baixa: #71717a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --card: #141416; --ink: #f4f4f5; --muted: #a1a1aa;
+      --line: #27272a; --brand: #2dd4bf; --brand-soft: #042f2e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --card: #141416; --ink: #f4f4f5; --muted: #a1a1aa;
+    --line: #27272a; --brand: #2dd4bf; --brand-soft: #042f2e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 48px 16px 80px; }
+  header { text-align: center; margin-bottom: 40px; }
+  .logo { font-size: 44px; }
+  h1 { font-size: 2rem; margin: 8px 0 4px; letter-spacing: -0.02em; }
+  .tagline { color: var(--muted); font-size: 1.1rem; max-width: 46ch; margin: 0 auto; }
+  .badge {
+    display: inline-block; margin-top: 14px; padding: 6px 14px; border-radius: 999px;
+    background: var(--brand-soft); color: var(--brand); font-weight: 600; font-size: .9rem;
+  }
+  section { margin-top: 44px; }
+  h2 { font-size: 1.35rem; margin: 0 0 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px; margin-bottom: 14px;
+  }
+  .det { display: flex; gap: 16px; align-items: flex-start; }
+  .det .ico { font-size: 30px; line-height: 1; }
+  .det h3 { margin: 2px 0 4px; font-size: 1.1rem; }
+  .det p { margin: 0; color: var(--muted); }
+  .steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  .steps li { position: relative; padding: 0 0 18px 52px; }
+  .steps li::before {
+    counter-increment: s; content: counter(s);
+    position: absolute; left: 0; top: -2px; width: 34px; height: 34px;
+    display: grid; place-items: center; border-radius: 50%;
+    background: var(--brand); color: #fff; font-weight: 700;
+  }
+  .steps li:not(:last-child)::after {
+    content: ""; position: absolute; left: 16px; top: 34px; bottom: 2px; width: 2px; background: var(--line);
+  }
+  .sev { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 5px 12px; border-radius: 8px; color: #fff; font-weight: 600; font-size: .85rem; }
+  .house { text-align: center; color: var(--muted); font-size: .95rem; }
+  .note {
+    border-left: 4px solid var(--brand); background: var(--brand-soft);
+    color: var(--ink); padding: 14px 18px; border-radius: 0 12px 12px 0; margin-top: 10px;
+  }
+  footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🛡️</div>
+    <h1>VibeGuard</h1>
+    <p class="tagline">Testa a segurança do seu aplicativo, direto na sua máquina — e explica tudo em palavras simples.</p>
+    <div class="badge">Roda no seu computador · Nada é enviado para fora</div>
+  </header>
+
+  <section>
+    <h2>A ideia, com uma casa 🏠</h2>
+    <div class="card house">
+      Pense no seu aplicativo como uma casa. O VibeGuard é um <strong>inspetor de segurança</strong>:
+      ele confere se você deixou alguma chave embaixo do tapete, se as portas estão trancadas e se
+      as janelas fecham direito. Ele testa <strong>com força</strong>, mas <strong>não quebra nada</strong> —
+      e só entra na <strong>sua</strong> casa.
+    </div>
+  </section>
+
+  <section>
+    <h2>Os três detetives</h2>
+    <div class="card det">
+      <div class="ico">🔑</div>
+      <div>
+        <h3>Chaves esquecidas</h3>
+        <p>Procura senhas e chaves de API deixadas no código sem querer — o descuido que mais vaza.</p>
+      </div>
+    </div>
+    <div class="card det">
+      <div class="ico">📖</div>
+      <div>
+        <h3>Descuidos no código</h3>
+        <p>Lê os arquivos atrás de portas sem fechadura: brechas de XSS, banco mal consultado, acesso liberado demais.</p>
+      </div>
+    </div>
+    <div class="card det">
+      <div class="ico">🚨</div>
+      <div>
+        <h3>Teste do app ligado</h3>
+        <p>Com o app funcionando, bate nas portas de verdade: travas faltando, arquivos expostos, áreas que abrem sem senha.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Como usar, em 3 passos</h2>
+    <div class="card">
+      <ol class="steps">
+        <li><strong>Abra o VibeGuard.</strong> No Windows, dois cliques em <code>iniciar.bat</code>. Ele abre no navegador.</li>
+        <li><strong>Aponte o que testar.</strong> A pasta do seu projeto (para ler o código) ou o endereço do app ligado (ex.: <code>localhost:3000</code>).</li>
+        <li><strong>Leia e conserte.</strong> Cada problema vem com explicação simples e a correção pronta pra copiar.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>As cores do aviso</h2>
+    <div class="card">
+      <div class="sev">
+        <span class="chip" style="background:var(--crit)">Crítica</span>
+        <span class="chip" style="background:var(--alta)">Alta</span>
+        <span class="chip" style="background:var(--media)">Média</span>
+        <span class="chip" style="background:var(--baixa)">Baixa</span>
+      </div>
+      <p style="color:var(--muted);margin:14px 0 0">Da mais urgente (Crítica) para a menos urgente (Baixa). Comece sempre pelas vermelhas.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Combinado importante</h2>
+    <div class="note">
+      O VibeGuard só testa software <strong>seu</strong>. O teste do app ligado funciona apenas em
+      endereços da sua própria máquina (<code>localhost</code>). E lembre: ele é um ótimo primeiro
+      pente-fino, <strong>não</strong> uma garantia — vale sempre um olhar humano no fim.
+    </div>
+  </section>
+
+  <footer>🛡️ VibeGuard — segurança para quem cria com IA.</footer>
+</div>
+</body>
+</html>
