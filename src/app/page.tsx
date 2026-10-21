@@ -8,6 +8,7 @@ import { Hero } from "@/components/dashboard/Hero";
 import { ScanCard } from "@/components/dashboard/ScanCard";
 import { ResultsPanel } from "@/components/dashboard/ResultsPanel";
 import { Insights } from "@/components/dashboard/Insights";
+import { Settings } from "@/components/dashboard/Settings";
 import { probeApp, scanPath } from "./actions";
 import type { ScanReport } from "@/features/scan/report";
 
@@ -28,15 +29,20 @@ export default function Home() {
   const [appPending, startApp] = useTransition();
   const [navOpen, setNavOpen] = useState(false);
 
-  const cardsRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
+  const appInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (nav === "codigo") codeInputRef.current?.focus();
+    else if (nav === "app") appInputRef.current?.focus();
+  }, [nav]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        codeInputRef.current?.focus();
+        setNav("codigo");
       }
     }
     window.addEventListener("keydown", onKey);
@@ -46,19 +52,10 @@ export default function Home() {
   function navigate(id: NavId) {
     setNav(id);
     setNavOpen(false);
-    if (id === "codigo" || id === "app") cardsRef.current?.scrollIntoView({ behavior: "smooth" });
-    else if (id === "relatorio") reportRef.current?.scrollIntoView({ behavior: "smooth" });
-    else window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function finish(
-    ok: boolean,
-    report: ScanReport | null,
-    note: string,
-    empty: string,
-    target: string | null,
-    error: string | null,
-  ) {
+  function finish(ok: boolean, report: ScanReport | null, note: string, empty: string, target: string | null, error: string | null) {
     if (!ok || !report) {
       setResult(null);
       setState("error");
@@ -75,10 +72,7 @@ export default function Home() {
   }
 
   function analyze() {
-    if (path.trim() === "") {
-      setPathErr("Informe o caminho da pasta do projeto.");
-      return;
-    }
+    if (path.trim() === "") return setPathErr("Informe o caminho da pasta do projeto.");
     setPathErr(null);
     startCode(async () => {
       const r = await scanPath(path);
@@ -94,10 +88,7 @@ export default function Home() {
   }
 
   function test() {
-    if (url.trim() === "") {
-      setUrlErr("Informe o endereço do app em execução.");
-      return;
-    }
+    if (url.trim() === "") return setUrlErr("Informe o endereço do app em execução.");
     setUrlErr(null);
     startApp(async () => {
       const r = await probeApp(url);
@@ -111,6 +102,38 @@ export default function Home() {
       );
     });
   }
+
+  const codeCard = (
+    <ScanCard
+      stepTitle="1. Analisar o código" description="Lê os arquivos do projeto à procura de segredos e descuidos."
+      label="Pasta do projeto" placeholder="C:\\projetos\\meu-app" kind="code" value={path} onChange={setPath}
+      onSubmit={analyze} pending={codePending} otherPending={appPending} error={pathErr} inputRef={codeInputRef}
+    />
+  );
+  const appCard = (
+    <ScanCard
+      stepTitle="2. Testar o app ligado" description="Testa o app rodando, de forma forte e não destrutiva."
+      label="Endereço do app local" placeholder="localhost:3000" kind="app" value={url} onChange={setUrl}
+      onSubmit={test} pending={appPending} otherPending={codePending} error={urlErr} inputRef={appInputRef}
+      note="Funciona apenas em localhost e os testes são não destrutivos."
+    />
+  );
+
+  const results = (
+    <div ref={reportRef}>
+      {codePending || appPending ? (
+        <LoadingPanel verb={codePending ? "Analisando o código…" : "Testando o app…"} />
+      ) : state === "error" ? (
+        <ErrorPanel message={panelError ?? "Algo deu errado."} />
+      ) : result ? (
+        <ResultsPanel report={result.report} summaryNote={result.summaryNote} emptyNote={result.emptyNote} lastRun={lastRun} />
+      ) : (
+        <IdlePanel message="Os resultados aparecem aqui depois da análise." />
+      )}
+    </div>
+  );
+
+  const showInsights = nav === "inicio" || nav === "relatorio";
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
@@ -127,70 +150,75 @@ export default function Home() {
       )}
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMenu={() => setNavOpen(true)} />
-        <main className="mx-auto flex w-full max-w-[1320px] flex-wrap gap-5 p-6">
-          <div className="flex min-w-[320px] flex-1 flex-col gap-5">
-            <Hero />
-            <div ref={cardsRef} className="flex flex-wrap gap-5">
-              <ScanCard
-                stepTitle="1. Analisar o código"
-                description="Lê os arquivos do projeto à procura de segredos e descuidos."
-                label="Pasta do projeto"
-                placeholder="C:\\projetos\\meu-app"
-                kind="code"
-                value={path}
-                onChange={setPath}
-                onSubmit={analyze}
-                pending={codePending}
-                otherPending={appPending}
-                error={pathErr}
-                inputRef={codeInputRef}
+        <main className="mx-auto flex w-full max-w-[1320px] flex-wrap gap-5 p-4 sm:p-6">
+          <div className="flex min-w-[300px] flex-1 flex-col gap-5">
+            {nav === "inicio" && (
+              <>
+                <Hero />
+                <div className="flex flex-wrap gap-5">{codeCard}{appCard}</div>
+                {results}
+              </>
+            )}
+            {nav === "codigo" && (
+              <>
+                <ViewTitle title="Analisar o código" subtitle="Aponte a pasta do seu projeto para procurar segredos e descuidos." />
+                {codeCard}
+                {results}
+              </>
+            )}
+            {nav === "app" && (
+              <>
+                <ViewTitle title="Testar o app ligado" subtitle="Com o app rodando, informe o endereço local para o teste não destrutivo." />
+                {appCard}
+                {results}
+              </>
+            )}
+            {nav === "relatorio" && (
+              <>
+                <ViewTitle title="Relatório" subtitle="O resultado da sua última análise." />
+                {result || state === "error" || codePending || appPending ? results : <IdlePanel message="Nenhuma análise ainda. Vá em “Analisar código” ou “Testar app”." />}
+              </>
+            )}
+            {nav === "config" && (
+              <Settings
+                hasResult={result !== null}
+                onClear={() => {
+                  setResult(null);
+                  setState("idle");
+                  setPanelError(null);
+                }}
               />
-              <ScanCard
-                stepTitle="2. Testar o app ligado"
-                description="Testa o app rodando, de forma forte e não destrutiva."
-                label="Endereço do app local"
-                placeholder="localhost:3000"
-                kind="app"
-                value={url}
-                onChange={setUrl}
-                onSubmit={test}
-                pending={appPending}
-                otherPending={codePending}
-                error={urlErr}
-                note="Funciona apenas em localhost e os testes são não destrutivos."
-              />
-            </div>
-
-            <div ref={reportRef}>
-              {codePending || appPending ? (
-                <LoadingPanel verb={codePending ? "Analisando o código…" : "Testando o app…"} />
-              ) : state === "error" ? (
-                <ErrorPanel message={panelError ?? "Algo deu errado."} />
-              ) : result ? (
-                <ResultsPanel report={result.report} summaryNote={result.summaryNote} emptyNote={result.emptyNote} lastRun={lastRun} />
-              ) : (
-                <IdlePanel />
-              )}
-            </div>
+            )}
 
             <footer className="flex items-center justify-end gap-1.5 pt-2" style={{ fontSize: 12, color: "var(--muted)" }}>
               <ShieldCheck size={13} color="var(--teal)" /> VibeGuard v1.0.0
             </footer>
           </div>
 
-          <div className="w-full xl:w-[340px] xl:shrink-0">
-            <Insights state={state} report={result?.report ?? null} target={result?.target ?? null} />
-          </div>
+          {showInsights && (
+            <div className="w-full xl:w-[340px] xl:shrink-0">
+              <Insights state={state} report={result?.report ?? null} target={result?.target ?? null} />
+            </div>
+          )}
         </main>
       </div>
     </div>
   );
 }
 
-function IdlePanel() {
+function ViewTitle({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>{title}</h2>
+      <p style={{ fontSize: 14, color: "var(--muted)" }}>{subtitle}</p>
+    </div>
+  );
+}
+
+function IdlePanel({ message }: { message: string }) {
   return (
     <div className="vg-card p-8 text-center" style={{ color: "var(--muted)", fontSize: 14 }}>
-      Os resultados aparecem aqui depois da análise.
+      {message}
     </div>
   );
 }
