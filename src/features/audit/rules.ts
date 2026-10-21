@@ -216,4 +216,46 @@ export const AUDIT_RULES: AuditRule[] = [
       "variáveis e até permitir execução de comandos (ex.: Flask/Django).",
     fix: "Desligue o debug em produção (DEBUG = False) e mostre erros genéricos ao usuário.",
   },
+  {
+    id: "idor-read-by-user-id",
+    category: "Autorização",
+    title: "Revise: busca por ID vindo do usuário (possível IDOR)",
+    severity: "media",
+    pattern: /\.(?:findById|findByPk|findUnique|findFirst|findOne|getById)\s*\([^)]*(?:req|request)\.(?:params|query|body)\.\w*id/i,
+    explanation:
+      "Buscar um registro só pelo ID que o usuário enviou permite que ele troque o " +
+      "número e acesse dados de outra pessoa (IDOR). Confirme se há checagem de que " +
+      "o recurso pertence a quem fez o pedido.",
+    fix:
+      "Além do ID, filtre pelo dono (ex.: where id = :id AND user_id = :usuarioLogado) " +
+      "ou verifique a permissão antes de devolver o recurso.",
+  },
+  {
+    id: "mass-assignment",
+    category: "Autorização",
+    title: "Mass assignment: corpo do pedido salvo direto no banco",
+    severity: "alta",
+    pattern: /\.(?:create|update|updateOne|updateMany|insert|insertOne|save|findOneAndUpdate|findByIdAndUpdate)\s*\(\s*(?:req|request)\.body\b|(?:data|values)\s*:\s*(?:req|request)\.body\b|Object\.assign\s*\([^,]+,\s*(?:req|request)\.body\b|new\s+[A-Z]\w*\s*\(\s*(?:req|request)\.body\b/,
+    explanation:
+      "Salvar o corpo inteiro do pedido deixa o usuário definir campos que não " +
+      "deveria — como papel, is_admin ou saldo —, virando administrador ou mudando " +
+      "dados protegidos.",
+    fix:
+      "Monte o objeto com apenas os campos permitidos (allowlist), em vez de passar " +
+      "req.body direto para o banco.",
+  },
+  {
+    id: "client-controlled-role",
+    category: "Autorização",
+    title: "Revise: papel ou permissão vindo do cliente",
+    severity: "media",
+    pattern: /(?:req|request)\.(?:body|query|params)\.(?:role|roles|is_?admin|admin|permission|permissions|scope|isadmin)\b/i,
+    explanation:
+      "Confiar no papel/permissão que o navegador envia permite ao usuário se " +
+      "declarar administrador. Esse valor deve vir do servidor (sessão/banco), nunca " +
+      "do pedido.",
+    fix:
+      "Decida o papel e a permissão no servidor, a partir do usuário autenticado; " +
+      "ignore qualquer papel enviado pelo cliente.",
+  },
 ];

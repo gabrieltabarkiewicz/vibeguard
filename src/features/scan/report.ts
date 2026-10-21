@@ -4,6 +4,7 @@
 import type { Finding, Severity } from "./types";
 
 export const SEVERITY_ORDER: readonly Severity[] = ["critica", "alta", "media", "baixa"];
+// Categorias: "Segredo" | "Código" | "Configuração" | "Autorização" | "Aplicativo".
 
 export const SEVERITY_LABEL: Record<Severity, string> = {
   critica: "Crítica",

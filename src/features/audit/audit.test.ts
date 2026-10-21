@@ -20,6 +20,9 @@ describe("deteções positivas", () => {
     "jwt-none-algorithm": 'jwt.verify(t, k, { algorithms: ["none"] });',
     "open-redirect": "res.redirect(req.query.next);",
     "debug-mode-on": "app.run(debug=True)",
+    "idor-read-by-user-id": "const pedido = await prisma.pedido.findUnique({ where: { id: req.params.id } });",
+    "mass-assignment": "await prisma.user.create(req.body);",
+    "client-controlled-role": 'if (req.body.role === "admin") { liberar(); }',
   };
 
   for (const [ruleId, line] of Object.entries(CASES)) {
@@ -51,6 +54,9 @@ describe("não acusa código seguro", () => {
     'jwt.verify(t, k, { algorithms: ["HS256"] });',
     'res.redirect("/painel");',
     "DEBUG = False",
+    "const pedido = await prisma.pedido.findUnique({ where: { id: session.userId } });",
+    "await prisma.user.create({ nome: req.body.nome, email: req.body.email });",
+    "const papel = usuario.role;",
   ];
   for (const line of SAFE) {
     it(`ignora: ${line.slice(0, 40)}…`, () => {
