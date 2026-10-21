@@ -17,6 +17,7 @@ function page(overrides: Partial<PageObservation> = {}): PageObservation {
     testOrigin: "https://vibeguard.invalid",
     reflectedInjection: false,
     errorStackLeak: false,
+    setCookies: [],
     ...overrides,
   };
 }
@@ -68,6 +69,22 @@ describe("CORS", () => {
     const obs = observation({ page: page({ corsAllowOrigin: "https://meusite.com" }) });
     expect(ids(obs)).not.toContain("cors-wildcard");
     expect(ids(obs)).not.toContain("cors-reflects-origin");
+  });
+});
+
+describe("cookies", () => {
+  it("acusa cookie sem HttpOnly", () => {
+    const obs = observation({ page: page({ setCookies: ["sid=abc123; Path=/"] }) });
+    expect(ids(obs)).toContain("cookie-no-httponly");
+  });
+  it("não acusa cookie com HttpOnly, Secure e SameSite", () => {
+    const obs = observation({ page: page({ setCookies: ["sid=abc123; HttpOnly; Secure; SameSite=Lax"] }) });
+    expect(ids(obs)).not.toContain("cookie-no-httponly");
+    expect(ids(obs)).not.toContain("cookie-no-secure");
+  });
+  it("em HTTPS, acusa cookie sem Secure", () => {
+    const obs = observation({ page: page({ https: true, setCookies: ["sid=abc; HttpOnly; SameSite=Lax"] }) });
+    expect(ids(obs)).toContain("cookie-no-secure");
   });
 });
 

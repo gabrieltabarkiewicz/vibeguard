@@ -11,6 +11,15 @@ describe("deteções positivas", () => {
     "tls-verification-off": "const agent = new https.Agent({ rejectUnauthorized: false });",
     "cors-wildcard": 'res.setHeader("Access-Control-Allow-Origin", "*");',
     "public-secret-var": "NEXT_PUBLIC_API_SECRET=abc123",
+    "insecure-cookie": 'res.cookie("sid", id, { httpOnly: false });',
+    "ssrf-user-url": "const r = await fetch(req.query.url);",
+    "path-traversal": "fs.readFile(req.query.file, cb);",
+    "weak-hash": 'crypto.createHash("md5").update(senha);',
+    "insecure-random-token": "const token = Math.random().toString(36).slice(2);",
+    "jwt-hardcoded-secret": 'jwt.sign(payload, "meusegredo123");',
+    "jwt-none-algorithm": 'jwt.verify(t, k, { algorithms: ["none"] });',
+    "open-redirect": "res.redirect(req.query.next);",
+    "debug-mode-on": "app.run(debug=True)",
   };
 
   for (const [ruleId, line] of Object.entries(CASES)) {
@@ -33,6 +42,15 @@ describe("não acusa código seguro", () => {
     'res.setHeader("Access-Control-Allow-Origin", "https://meusite.com");',
     "const NEXT_PUBLIC_API_URL = 'https://api.exemplo.com';",
     "const total = preco + frete;",
+    'res.cookie("sid", id, { httpOnly: true, secure: true, sameSite: "lax" });',
+    'const r = await fetch("https://api.exemplo.com/dados");',
+    'fs.readFile("./config.json", cb);',
+    'crypto.createHash("sha256").update(x);',
+    "const id = crypto.randomUUID();",
+    "jwt.sign(payload, process.env.JWT_SECRET);",
+    'jwt.verify(t, k, { algorithms: ["HS256"] });',
+    'res.redirect("/painel");',
+    "DEBUG = False",
   ];
   for (const line of SAFE) {
     it(`ignora: ${line.slice(0, 40)}…`, () => {

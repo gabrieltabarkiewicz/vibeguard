@@ -18,6 +18,8 @@ export interface PageObservation {
   reflectedInjection: boolean;
   /** true se uma página de erro mostrou stack trace. */
   errorStackLeak: boolean;
+  /** Cabeçalhos Set-Cookie da resposta principal (um por cookie). */
+  setCookies: string[];
 }
 
 export interface PathObservation {
