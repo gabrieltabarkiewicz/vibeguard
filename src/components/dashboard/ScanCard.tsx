@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type RefObject } from "react";
 import { Folder, Link as LinkIcon, Play, Loader2, TriangleAlert, Info } from "lucide-react";
 
 export function ScanCard({
@@ -16,6 +16,7 @@ export function ScanCard({
   otherPending,
   error,
   note,
+  inputRef,
 }: {
   stepTitle: string;
   description: string;
@@ -29,6 +30,7 @@ export function ScanCard({
   otherPending: boolean;
   error: string | null;
   note?: string;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }) {
   const inputId = useId();
   const errId = `${inputId}-err`;
@@ -58,6 +60,7 @@ export function ScanCard({
           <Icon size={17} color="var(--muted)" className="pointer-events-none absolute left-[14px] top-1/2 -translate-y-1/2" />
           <input
             id={inputId}
+            ref={inputRef}
             className="vg-input"
             placeholder={placeholder}
             value={value}
