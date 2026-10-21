@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sun, Moon, ShieldCheck } from "lucide-react";
+import { Sun, Moon, ShieldCheck, Menu } from "lucide-react";
 
 // Lê o tema já aplicado ao <html> pelo script inline (evita setState em effect).
 function readTheme(): "dark" | "light" {
@@ -9,7 +9,7 @@ function readTheme(): "dark" | "light" {
   return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
 }
 
-export function Topbar() {
+export function Topbar({ onMenu }: { onMenu?: () => void }) {
   const [theme, setTheme] = useState<"dark" | "light">(readTheme);
 
   function apply(next: "dark" | "light") {
@@ -27,6 +27,17 @@ export function Topbar() {
       className="sticky top-0 z-10 flex items-center gap-3 px-6 py-[14px]"
       style={{ background: "var(--topbar)", borderBottom: "1px solid var(--border)", backdropFilter: "blur(10px)" }}
     >
+      {onMenu && (
+        <button
+          type="button"
+          aria-label="Abrir menu"
+          onClick={onMenu}
+          className="vg-focusable flex h-11 w-11 items-center justify-center rounded-[10px] md:hidden"
+          style={{ color: "var(--text)" }}
+        >
+          <Menu size={20} />
+        </button>
+      )}
       <div className="flex items-center gap-2">
         <ShieldCheck size={18} color="var(--teal)" />
         <span style={{ fontWeight: 600 }}>VibeGuard</span>

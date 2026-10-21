@@ -25,12 +25,14 @@ export default function Home() {
   const [panelError, setPanelError] = useState<string | null>(null);
   const [codePending, startCode] = useTransition();
   const [appPending, startApp] = useTransition();
+  const [navOpen, setNavOpen] = useState(false);
 
   const cardsRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
   function navigate(id: NavId) {
     setNav(id);
+    setNavOpen(false);
     if (id === "codigo" || id === "app") cardsRef.current?.scrollIntoView({ behavior: "smooth" });
     else if (id === "relatorio") reportRef.current?.scrollIntoView({ behavior: "smooth" });
     else window.scrollTo({ top: 0, behavior: "smooth" });
@@ -99,8 +101,16 @@ export default function Home() {
       <div className="hidden md:block">
         <Sidebar active={nav} onNavigate={navigate} />
       </div>
+      {navOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden" role="presentation">
+          <button type="button" aria-label="Fechar menu" className="absolute inset-0" style={{ background: "rgba(0,0,0,0.5)", border: "none" }} onClick={() => setNavOpen(false)} />
+          <div className="relative h-full">
+            <Sidebar active={nav} onNavigate={navigate} />
+          </div>
+        </div>
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar onMenu={() => setNavOpen(true)} />
         <main className="mx-auto flex w-full max-w-[1320px] flex-wrap gap-5 p-6">
           <div className="flex min-w-[320px] flex-1 flex-col gap-5">
             <Hero />
