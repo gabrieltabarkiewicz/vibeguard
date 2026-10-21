@@ -112,4 +112,108 @@ export const AUDIT_RULES: AuditRule[] = [
       "Tire o prefixo público e leia o valor só no servidor (process.env). Gere " +
       "uma nova chave, porque a atual foi exposta.",
   },
+  {
+    id: "insecure-cookie",
+    category: "Configuração",
+    title: "Cookie marcado como inseguro",
+    severity: "alta",
+    pattern: /httpOnly\s*:\s*false|secure\s*:\s*false|sameSite\s*:\s*['"]?none['"]?/i,
+    explanation:
+      "Cookie de sessão sem HttpOnly pode ser lido por scripts (roubo de sessão); " +
+      "sem Secure, trafega em conexão aberta; SameSite none sem Secure facilita CSRF.",
+    fix: "Use httpOnly: true, secure: true e sameSite: 'lax' (ou 'strict') nos cookies de sessão.",
+  },
+  {
+    id: "ssrf-user-url",
+    category: "Código",
+    title: "Possível SSRF: acesso a URL controlada pelo usuário",
+    severity: "alta",
+    pattern: /\b(?:fetch|axios(?:\.\w+)?|got|https?\.(?:get|request))\s*\(\s*[^)]*(?:(?:req|request)\.(?:query|params|body)\b|searchParams\.get\s*\()/,
+    explanation:
+      "Deixar o usuário escolher o endereço que o servidor acessa permite SSRF: ele " +
+      "faz o seu servidor chamar a rede interna ou os metadados da nuvem.",
+    fix:
+      "Valide a URL contra uma lista de domínios permitidos e bloqueie endereços " +
+      "internos antes da requisição.",
+  },
+  {
+    id: "path-traversal",
+    category: "Código",
+    title: "Possível path traversal: caminho de arquivo vindo do usuário",
+    severity: "alta",
+    pattern: /\b(?:readFileSync|readFile|createReadStream|sendFile|writeFileSync|writeFile|unlink|readdir)\s*\(\s*[^)]*(?:req|request)\.(?:query|params|body)\b|path\.join\s*\([^)]*(?:req|request)\.(?:query|params|body)\b/,
+    explanation:
+      "Usar o que o usuário digita como caminho de arquivo permite ler ou gravar " +
+      "fora da pasta pretendida (ex.: ../../etc/passwd).",
+    fix:
+      "Normalize o caminho e confira que ele continua dentro da pasta permitida; " +
+      "prefira uma lista de nomes/IDs válidos ao caminho livre.",
+  },
+  {
+    id: "weak-hash",
+    category: "Código",
+    title: "Hash fraco (MD5/SHA1)",
+    severity: "media",
+    pattern: /createHash\s*\(\s*['"](?:md5|sha1)['"]/i,
+    explanation:
+      "MD5 e SHA1 são fracos e não servem para senha (são quebráveis). Para senha, " +
+      "são perigosos.",
+    fix: "Para senha, use bcrypt, scrypt ou argon2. Para integridade simples, prefira SHA-256.",
+  },
+  {
+    id: "insecure-random-token",
+    category: "Código",
+    title: "Aleatoriedade fraca para token/segredo",
+    severity: "media",
+    pattern: /\b(?:token|otp|secret|senha|password|reset|nonce|code|apikey|api_key|sessionid|session_id)\w*\s*=\s*[^;\n]*Math\.random\s*\(/i,
+    explanation:
+      "Math.random() é previsível e não serve para token, código de recuperação ou " +
+      "senha: dá para adivinhar o valor.",
+    fix:
+      "Use um gerador criptográfico: crypto.randomUUID() ou crypto.randomBytes() " +
+      "(Node), ou crypto.getRandomValues() (navegador).",
+  },
+  {
+    id: "jwt-hardcoded-secret",
+    category: "Configuração",
+    title: "Segredo do JWT fixo no código",
+    severity: "alta",
+    pattern: /jwt\.(?:sign|verify)\s*\(\s*[^,]+,\s*['"][^'"]+['"]/,
+    explanation:
+      "Um segredo de JWT escrito no código pode ser lido por quem vê o repositório " +
+      "e usado para forjar tokens de login.",
+    fix: "Guarde o segredo em variável de ambiente (process.env) e use um valor longo e aleatório.",
+  },
+  {
+    id: "jwt-none-algorithm",
+    category: "Configuração",
+    title: "JWT aceitando algoritmo 'none'",
+    severity: "alta",
+    pattern: /algorithms?\s*:\s*\[?\s*['"]none['"]/i,
+    explanation:
+      "Aceitar o algoritmo 'none' deixa qualquer um forjar um token válido sem assinatura.",
+    fix: "Fixe um algoritmo seguro (ex.: algorithms: ['HS256'] ou ['RS256']) e nunca aceite 'none'.",
+  },
+  {
+    id: "open-redirect",
+    category: "Código",
+    title: "Possível open redirect",
+    severity: "media",
+    pattern: /\.redirect\s*\(\s*[^)]*(?:req|request)\.(?:query|params|body)\b/,
+    explanation:
+      "Redirecionar para um endereço vindo do usuário permite mandar a vítima a um " +
+      "site de phishing que parece vir do seu.",
+    fix: "Permita só caminhos internos ou uma lista de destinos confiáveis; não redirecione para URL livre.",
+  },
+  {
+    id: "debug-mode-on",
+    category: "Configuração",
+    title: "Modo debug ligado",
+    severity: "media",
+    pattern: /app\.run\([^)]*debug\s*=\s*True|(?:^|\s)DEBUG\s*=\s*True\b|app\.config\[['"]DEBUG['"]\]\s*=\s*True/,
+    explanation:
+      "Com o modo debug ligado em produção, a página de erro pode revelar código, " +
+      "variáveis e até permitir execução de comandos (ex.: Flask/Django).",
+    fix: "Desligue o debug em produção (DEBUG = False) e mostre erros genéricos ao usuário.",
+  },
 ];

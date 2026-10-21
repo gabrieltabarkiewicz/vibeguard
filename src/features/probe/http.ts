@@ -68,6 +68,14 @@ async function getText(url: string, headers?: Record<string, string>): Promise<{
   }
 }
 
+function readSetCookies(headers: Headers | undefined, joined: string | undefined): string[] {
+  if (!headers) return [];
+  // Node 20+ expõe getSetCookie(); senão, caímos no valor concatenado.
+  const native = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie;
+  if (typeof native === "function") return native.call(headers);
+  return joined ? [joined] : [];
+}
+
 function lowerHeaders(headers: Headers): Record<string, string> {
   const out: Record<string, string> = {};
   headers.forEach((value, key) => {
@@ -109,6 +117,7 @@ export async function observe(url: URL): Promise<Observation> {
   const error = await getText(baseUrl + ERROR_PROBE_PATH);
 
   const headers = main ? lowerHeaders(main.headers) : {};
+  const setCookies = readSetCookies(main?.headers, headers["set-cookie"]);
   const page: PageObservation = {
     baseUrl,
     status: main?.status ?? 0,
@@ -119,6 +128,7 @@ export async function observe(url: URL): Promise<Observation> {
     testOrigin: TEST_ORIGIN,
     reflectedInjection: Boolean(main && main.body.includes(XSS_SIGNATURE)),
     errorStackLeak: Boolean(error && STACK_TRACE_SIGNATURES.some((re) => re.test(error.body))),
+    setCookies,
   };
 
   const sensitive: PathObservation[] = await mapLimit(SENSITIVE_PATHS, CONCURRENCY, async (spec) => {

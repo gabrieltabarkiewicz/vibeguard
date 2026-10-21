@@ -89,6 +89,39 @@ function injectionFindings(page: PageObservation): Finding[] {
   })];
 }
 
+function cookieFindings(page: PageObservation): Finding[] {
+  const out: Finding[] = [];
+  const insecure = page.setCookies.filter((c) => !/;\s*httponly/i.test(c));
+  if (insecure.length > 0) {
+    const name = insecure[0]!.split("=")[0]?.trim() ?? "cookie";
+    out.push(finding({
+      ruleId: "cookie-no-httponly",
+      title: "Cookie sem HttpOnly",
+      severity: "alta",
+      file: page.baseUrl,
+      evidence: `Set-Cookie: ${name} sem HttpOnly`,
+      explanation: "Um cookie sem HttpOnly pode ser lido por JavaScript na página. Se for o cookie de sessão, um ataque de XSS consegue roubar a sessão do usuário.",
+      fix: "Marque o cookie com HttpOnly (e Secure + SameSite) ao defini-lo no servidor.",
+    }));
+  }
+  if (page.https) {
+    const noSecure = page.setCookies.filter((c) => !/;\s*secure/i.test(c));
+    if (noSecure.length > 0) {
+      const name = noSecure[0]!.split("=")[0]?.trim() ?? "cookie";
+      out.push(finding({
+        ruleId: "cookie-no-secure",
+        title: "Cookie sem Secure em HTTPS",
+        severity: "media",
+        file: page.baseUrl,
+        evidence: `Set-Cookie: ${name} sem Secure`,
+        explanation: "Em HTTPS, um cookie sem Secure pode acabar trafegando por uma conexão aberta e ser interceptado.",
+        fix: "Marque o cookie com Secure para que ele só seja enviado por HTTPS.",
+      }));
+    }
+  }
+  return out;
+}
+
 function errorLeakFindings(page: PageObservation): Finding[] {
   if (!page.errorStackLeak) return [];
   return [finding({
@@ -146,6 +179,7 @@ export function buildFindings(observation: Observation): Finding[] {
   return [
     ...injectionFindings(page),
     ...corsFindings(page),
+    ...cookieFindings(page),
     ...exposedFindings(observation.sensitive, page.baseUrl),
     ...protectedFindings(observation.protectedPaths, page.baseUrl),
     ...headerFindings(page),
