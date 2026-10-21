@@ -1,14 +1,15 @@
 "use client";
 
-import { ShieldCheck, House, Code, Play, FileText } from "lucide-react";
+import { ShieldCheck, House, Code, Play, FileText, Settings } from "lucide-react";
 
-type NavId = "inicio" | "codigo" | "app" | "relatorio";
+type NavId = "inicio" | "codigo" | "app" | "relatorio" | "config";
 
 const NAV: { id: NavId; label: string; Icon: typeof House }[] = [
   { id: "inicio", label: "Início", Icon: House },
   { id: "codigo", label: "Analisar código", Icon: Code },
   { id: "app", label: "Testar app", Icon: Play },
   { id: "relatorio", label: "Relatório", Icon: FileText },
+  { id: "config", label: "Configurações", Icon: Settings },
 ];
 
 export function Sidebar({ active, onNavigate }: { active: NavId; onNavigate: (id: NavId) => void }) {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { Loader2, TriangleAlert } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { Loader2, TriangleAlert, ShieldCheck } from "lucide-react";
 import { Sidebar, type NavId } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Hero } from "@/components/dashboard/Hero";
@@ -23,12 +23,25 @@ export default function Home() {
   const [result, setResult] = useState<Result | null>(null);
   const [state, setState] = useState<PanelState>("idle");
   const [panelError, setPanelError] = useState<string | null>(null);
+  const [lastRun, setLastRun] = useState("—");
   const [codePending, startCode] = useTransition();
   const [appPending, startApp] = useTransition();
   const [navOpen, setNavOpen] = useState(false);
 
   const cardsRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
+  const codeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        codeInputRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function navigate(id: NavId) {
     setNav(id);
@@ -53,6 +66,9 @@ export default function Home() {
       return;
     }
     setPanelError(null);
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setLastRun(`${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} · ${pad(now.getHours())}:${pad(now.getMinutes())}`);
     setResult({ report, summaryNote: note, emptyNote: empty, target });
     setState(report.total === 0 ? "empty" : "has");
     reportRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -127,6 +143,7 @@ export default function Home() {
                 pending={codePending}
                 otherPending={appPending}
                 error={pathErr}
+                inputRef={codeInputRef}
               />
               <ScanCard
                 stepTitle="2. Testar o app ligado"
@@ -150,11 +167,15 @@ export default function Home() {
               ) : state === "error" ? (
                 <ErrorPanel message={panelError ?? "Algo deu errado."} />
               ) : result ? (
-                <ResultsPanel report={result.report} summaryNote={result.summaryNote} emptyNote={result.emptyNote} />
+                <ResultsPanel report={result.report} summaryNote={result.summaryNote} emptyNote={result.emptyNote} lastRun={lastRun} />
               ) : (
                 <IdlePanel />
               )}
             </div>
+
+            <footer className="flex items-center justify-end gap-1.5 pt-2" style={{ fontSize: 12, color: "var(--muted)" }}>
+              <ShieldCheck size={13} color="var(--teal)" /> VibeGuard v1.0.0
+            </footer>
           </div>
 
           <div className="w-full xl:w-[340px] xl:shrink-0">
