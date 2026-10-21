@@ -77,7 +77,7 @@ export function ScanReportView({ report, summaryNote, emptyNote }: {
     );
   }
 
-  const CATEGORY_ORDER = ["Segredo", "Código", "Configuração", "Aplicativo"] as const;
+  const CATEGORY_ORDER = ["Segredo", "Código", "Configuração", "Autorização", "Aplicativo"] as const;
   const groups = CATEGORY_ORDER.map((category) => ({
     category,
     items: report.findings.filter((f) => f.category === category),
